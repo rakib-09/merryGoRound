@@ -1,7 +1,7 @@
 package http
 
 import (
-	"merryGoRound/pkg/proxy"
+	"github.com/imthaghost/merryGoRound/pkg/proxy"
 	"net"
 	"net/http"
 	"sync"

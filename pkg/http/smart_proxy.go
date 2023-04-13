@@ -1,7 +1,8 @@
 package http
 
 import (
-	"merryGoRound/pkg/proxy"
+	"context"
+	"github.com/imthaghost/merryGoRound/pkg/proxy"
 	"net"
 	"net/http"
 	"sync"
@@ -19,14 +20,18 @@ type SmartProxyClient struct {
 // New ...
 func (s *SmartProxyClient) New() *http.Client {
 	s.once.Do(func() {
+		dialer := &net.Dialer{
+			Timeout:   20 * time.Second, // max dialer timeout
+			KeepAlive: 30 * time.Second, // keepalive duration
+		}
 		// transport configuration
 		var netTransport = &http.Transport{
 			Proxy:        proxy.SmartProxy(),   // We can use Tor or Smart Proxy - rotating IP addresses - if nil no proxy is used
 			MaxIdleConns: s.MaxIdleConnections, // max idle connections
 			// Dialer
-			Dial: (&net.Dialer{
-				Timeout: 20 * time.Second, // max dialer timeout
-			}).Dial,
+			DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, address)
+			},
 			TLSHandshakeTimeout: 20 * time.Second, // transport layer security max timeout
 		}
 		// Client
